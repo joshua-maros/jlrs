@@ -4,7 +4,7 @@ use std::fs;
 use std::iter::FromIterator;
 use std::path::{Path, PathBuf};
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 fn find_julia() -> Option<String> {
     if let Ok(path) = env::var("JULIA_DIR") {
         return Some(path);
