@@ -37,7 +37,7 @@ fn flags() -> Vec<String> {
     ]
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os="macos"))]
 fn flags() -> Vec<String> {
     let flags = match find_julia() {
         Some(julia_dir) => {
