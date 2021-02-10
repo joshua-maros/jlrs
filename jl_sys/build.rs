@@ -167,7 +167,7 @@ fn main() {
         builder = builder.whitelist_function(func);
     }
 
-    let bindings = builder
+    builder = builder
         .whitelist_type("jl_code_instance_t")
         .whitelist_type("jl_datatype_t")
         .whitelist_type("jl_expr_t")
@@ -294,11 +294,16 @@ fn main() {
         .whitelist_var("jl_weakref_type")
         .whitelist_var("jl_weakref_typejl_abstractslot_type")
         .rustfmt_bindings(true)
-        .generate()
-        .expect("Unable to generate bindings");
+    
+    let child = std::thread::Builder::new().stack_size(64 * 1024 * 1024).spawn(move || { 
+        // code to be executed in thread 
+        let bindings = builder.generate()
+            .expect("Unable to generate bindings");
 
-    // Write the bindings to the $OUT_DIR/bindings.rs file.
-    bindings
-        .write_to_file(&out_path)
-        .expect("Couldn't write bindings!");
+        // Write the bindings to the $OUT_DIR/bindings.rs file.
+        bindings
+            .write_to_file(&out_path)
+            .expect("Couldn't write bindings!");
+    }).unwrap(); 
+    child.join().unwrap();
 }
