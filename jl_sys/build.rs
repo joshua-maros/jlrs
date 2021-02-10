@@ -29,13 +29,12 @@ fn flags() -> Vec<String> {
 
     println!("cargo:rustc-flags={}", &jl_lib_path);
     println!("cargo:rustc-link-lib=julia");
+    println!("cargo:warning=Using --sysroot");
     vec![
         jl_include_path,
-        cygwin_include_path,
-        w32api_include_path,
         jl_lib_path,
         format!("--target=x86_64-pc-windows-gnu"),
-        // format!("--sysroot=D:\\Software\\mingw-w64\\x86_64-8.1.0-win32-seh-rt_v6-rev0\\mingw64\\"),
+        format!("--sysroot=C:\\msys64\\mingw64\\x86_64-w64-mingw32\\"),
     ]
 }
 
