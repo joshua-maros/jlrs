@@ -55,7 +55,7 @@ fn flags() -> Vec<String> {
     flags
 }
 
-fn main() {
+fn doit() {
     let mut out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
     out_path.push("bindings.rs");
 
@@ -294,16 +294,20 @@ fn main() {
         .whitelist_var("jl_weakref_type")
         .whitelist_var("jl_weakref_typejl_abstractslot_type")
         .rustfmt_bindings(true);
-    
-    let child = std::thread::Builder::new().stack_size(64 * 1024 * 1024).spawn(move || { 
-        // code to be executed in thread 
-        let bindings = builder.generate()
-            .expect("Unable to generate bindings");
 
-        // Write the bindings to the $OUT_DIR/bindings.rs file.
-        bindings
-            .write_to_file(&out_path)
-            .expect("Couldn't write bindings!");
+    // code to be executed in thread 
+    let bindings = builder.generate()
+        .expect("Unable to generate bindings");
+
+    // Write the bindings to the $OUT_DIR/bindings.rs file.
+    bindings
+        .write_to_file(&out_path)
+        .expect("Couldn't write bindings!");
+}
+
+fn main() {
+    let child = std::thread::Builder::new().stack_size(64 * 1024 * 1024).spawn(move || { 
+        doit();
     }).unwrap(); 
     child.join().unwrap();
 }
