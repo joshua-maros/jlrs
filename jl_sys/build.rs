@@ -20,20 +20,17 @@ fn find_julia() -> Option<String> {
 #[cfg(target_os = "windows")]
 fn flags() -> Vec<String> {
     let julia_dir = env::var("JULIA_DIR").expect("Julia cannot be found. You can specify the Julia installation path with the JULIA_DIR environment variable.");
-    let cygwin_path = env::var("CYGWIN_DIR").expect("Cygwin cannot be found. You can specify the Cygwin installation path with the CYGWIN_DIR environment variable.");
 
     let jl_include_path = format!("-I{}/include/julia/", julia_dir);
-    let cygwin_include_path = format!("-I{}/usr/include", cygwin_path);
-    let w32api_include_path = format!("-I{}/usr/include/w32api", cygwin_path);
     let jl_lib_path = format!("-L{}/bin/", julia_dir);
 
     println!("cargo:rustc-flags={}", &jl_lib_path);
     println!("cargo:rustc-link-lib=julia");
     vec![
         jl_include_path,
-        cygwin_include_path,
-        w32api_include_path,
         jl_lib_path,
+        format!("--target=x86_64-pc-windows-gnu"),
+        // format!("--sysroot=D:\\Software\\mingw-w64\\x86_64-8.1.0-win32-seh-rt_v6-rev0\\mingw64\\"),
     ]
 }
 
