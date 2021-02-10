@@ -293,7 +293,7 @@ fn main() {
         .whitelist_var("jl_voidpointer_type")
         .whitelist_var("jl_weakref_type")
         .whitelist_var("jl_weakref_typejl_abstractslot_type")
-        .rustfmt_bindings(true)
+        .rustfmt_bindings(true);
     
     let child = std::thread::Builder::new().stack_size(64 * 1024 * 1024).spawn(move || { 
         // code to be executed in thread 
