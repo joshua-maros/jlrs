@@ -15,11 +15,6 @@ use std::ffi::c_void;
 use std::mem::size_of;
 use std::sync::atomic::{AtomicPtr, Ordering};
 
-#[cfg(target_os = "windows")]
-extern "C" {
-    #![link(name = "julia", kind="dylib")]
-}
-
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
 /*mod dynamic {

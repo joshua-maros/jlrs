@@ -22,15 +22,19 @@ fn flags() -> Vec<String> {
     let julia_dir = env::var("JULIA_DIR").expect("Julia cannot be found. You can specify the Julia installation path with the JULIA_DIR environment variable.");
 
     let jl_include_path = format!("-I{}/include/julia/", julia_dir);
-    let jl_lib_path = format!("-L{}/bin/", julia_dir);
-
-    println!("cargo:rustc-flags={}", &jl_lib_path);
-    vec![
-        jl_include_path,
-    ]
+    let jl_lib_path = format!("{}/lib/libjulia.dll.a", julia_dir);
+    let real_lib_folder = PathBuf::from(env::var("OUT_DIR").unwrap());
+    let mut real_lib_path = real_lib_folder.clone();
+    real_lib_path.push("julia.lib");
+    fs::copy(jl_lib_path, real_lib_path).unwrap();
+    println!(
+        "cargo:rustc-link-search=native={}",
+        real_lib_folder.to_string_lossy()
+    );
+    vec![jl_include_path]
 }
 
-#[cfg(any(target_os = "linux", target_os="macos"))]
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 fn flags() -> Vec<String> {
     let flags = match find_julia() {
         Some(julia_dir) => {
@@ -287,19 +291,29 @@ fn doit() {
         .whitelist_var("jl_weakref_typejl_abstractslot_type")
         .rustfmt_bindings(true);
 
-    // code to be executed in thread 
-    let bindings = builder.generate()
-        .expect("Unable to generate bindings");
+    // code to be executed in thread
+    let bindings = builder.generate().expect("Unable to generate bindings");
+
+    let mut code = bindings.to_string();
+    if cfg!(target_os = "windows") {
+        code = code.replace(
+            "extern \"C\" {",
+            "#[link(name = \"julia\", kind = \"dylib\")]\r\nextern \"C\" {",
+        );
+    }
 
     // Write the bindings to the $OUT_DIR/bindings.rs file.
-    bindings
-        .write_to_file(&out_path)
-        .expect("Couldn't write bindings!");
+    let mut file = std::fs::File::create(&out_path).unwrap();
+    use std::io::Write;
+    file.write_all(code.as_bytes()).unwrap();
 }
 
 fn main() {
-    let child = std::thread::Builder::new().stack_size(64 * 1024 * 1024).spawn(move || { 
-        doit();
-    }).unwrap(); 
+    let child = std::thread::Builder::new()
+        .stack_size(64 * 1024 * 1024)
+        .spawn(move || {
+            doit();
+        })
+        .unwrap();
     child.join().unwrap();
 }
